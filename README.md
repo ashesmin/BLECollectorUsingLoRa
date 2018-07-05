@@ -6,4 +6,4 @@
 
 #### 2. Run
 ##### <code>$ ./main.cpp_exe [duration] </code>
-##### > ($ ./main.cpp_exe 100) </code>
+##### > $ ./main.cpp_exe 100
