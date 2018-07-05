@@ -1,8 +1,8 @@
 # BLECollectorUsingLoRa
 
 1. Compile
-$ ./cook.sh -clean
-$ ./cook.sh main.cpp
+\n$ ./cook.sh -clean
+\n$ ./cook.sh main.cpp
 
 2. Run
 $ ./main.cpp_exe [duration]
