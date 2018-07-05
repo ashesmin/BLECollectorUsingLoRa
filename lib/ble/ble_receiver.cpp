@@ -208,6 +208,7 @@ vector<vector<ble_struct>> v;
 vector<ble_struct>::iterator vi;
 vector<vector<ble_struct>>::iterator vvi;
 
+vector<ble_struct> s_v;
 
 void print_vec() {
 	for(vvi = v.begin() ; vvi != v.end() ; vvi++ ) {
@@ -244,7 +245,7 @@ bool exist_addr(bdaddr_t bdaddr) {
 	return false;
 }
 
-int insert_data(ble_struct *val) {
+int insert_csv_data(ble_struct *val) {
 	ble_struct tmp_struct;
 	memcpy(&tmp_struct, val, 20);
 
@@ -260,6 +261,19 @@ int insert_data(ble_struct *val) {
 
 		return 0;
 	}
+}
+
+int insert_sending_data(ble_struct *val) {
+	ble_struct tmp_struct;
+	memcpy(&tmp_struct, val, 20);
+
+	s_v.push_back(tmp_struct);
+
+	return 1;
+}
+
+void delete_sending_data() {
+	s_v.clear();
 }
 
 char* print_time(timeval val) {
@@ -287,6 +301,15 @@ char* print_time(timeval val) {
 void make_csv_files(timeval start, int max_index) {
 	ofstream file;
 	struct tm *newtime;
+
+	struct stat st;
+	int fi = stat("./log", &st);
+
+	if ( fi == -1 ) {
+		if ( errno == 2 ) {
+			mkdir("./log", 0755);
+		}
+	}
 
 	for (vvi = v.begin() ; vvi != v.end() ; vvi++ ) {
 		char title[40] = "./log/tag_";

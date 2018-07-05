@@ -1,0 +1,175 @@
+#!/bin/bash
+
+PWD="$(pwd)"
+cd lib/
+BASE_DIR="$(pwd)"
+INC_DIR="$BASE_DIR/inc"
+BLE_DIR="$BASE_DIR/ble"
+ARDUPI_DIR="$BASE_DIR/arduPi"
+ARDUPIAPI_DIR="$BASE_DIR/arduPi-api"
+LIBRARY_DIR="$BASE_DIR/libraries/arduPiLoRa"
+cd ..
+PROJECT_DIR="$(pwd)"
+
+cd "$BLE_DIR"
+file="./ble_receiver.o"
+if [ -e $file ]; then
+	if [ "$1" == "-clean" ]; then
+		echo "ble_receiver.o -> purged"
+		rm ./ble_receiver.o
+	else
+		echo "ble receiver already compiled"
+	fi
+else
+	if [ "$1" != "-clean" ]; then
+		echo "Compiling ble receiver... "
+		g++ -c ble_receiver.cpp -o ble_receiver.o -lbluetooth
+	fi
+fi
+
+cd "$INC_DIR"
+file="./lora.o"
+if [ -e $file ]; then
+	if [ "$1" == "-clean" ]; then
+		echo "lora.o -> purged"
+		rm ./lora.o
+	else
+		echo "lora already compiled"
+	fi
+else
+	if [ "$1" != "-clean" ]; then
+		echo "Compiling lora... "
+		g++ -c lora.cpp -o lora.o -I  "$LIBRARY_DIR" -I "$ARDUPI_DIR" -I .
+	fi
+fi
+
+
+#compile arduPi
+cd "$ARDUPI_DIR"
+file="./arduPi.o"
+if [ -e $file ]; then
+	if [ "$1" == "-clean" ]; then
+		echo "arduPi.o -> purged"
+		rm ./arduPi.o
+	else
+		echo "arduPi already compiled"
+	fi
+else
+	if [ "$1" != "-clean" ]; then
+		echo "Compiling arduPi..."
+		g++ -c arduPi.cpp -o arduPi.o
+	fi
+fi
+
+
+#compile arduPi-api
+cd "$ARDUPIAPI_DIR"
+file="./arduPiUART.o"
+if [ -e $file ]; then
+	if [ "$1" == "-clean" ]; then
+		echo "arduPiUART.o -> purged"
+		rm ./arduPiUART.o
+	else
+		echo "arduPiUART already compiled"
+	fi
+else
+	if [ "$1" != "-clean" ]; then
+		echo "Compiling arduPiUART..."
+		g++ -c arduPiUART.cpp -o arduPiUART.o
+	fi
+fi
+
+
+file="./arduPiUtils.o"
+if [ -e $file ]; then
+	if [ "$1" == "-clean" ]; then
+		echo "arduPiUtils.o -> purged"
+		rm ./arduPiUtils.o
+	else
+		echo "arduPiUtils already compiled"
+	fi
+else
+	if [ "$1" != "-clean" ]; then
+		echo "Compiling arduPiUtils..."
+		g++ -c arduPiUtils.cpp -o arduPiUtils.o
+	fi
+fi
+
+file="./arduPiMultiprotocol.o"
+if [ -e $file ]; then
+	if [ "$1" == "-clean" ]; then
+		echo "arduPiMultiprotocol.o -> purged"
+		rm ./arduPiMultiprotocol.o
+	else
+		echo "arduPiMultiprotocol already compiled"
+	fi
+else
+	if [ "$1" != "-clean" ]; then
+		echo "Compiling arduPiMultiprotocol..."
+		g++ -c arduPiMultiprotocol.cpp -o arduPiMultiprotocol.o
+	fi
+fi
+
+
+#compile library
+cd "$LIBRARY_DIR"
+file="./arduPiLoRa.o"
+if [ -e $file ]; then
+	if [ "$1" == "-clean" ]; then
+		echo "arduPiLoRa.o -> purged"
+		rm ./arduPiLoRa.o
+	else
+		echo "arduPiLoRa already compiled"
+	fi
+else
+	if [ "$1" != "-clean" ]; then
+		echo "Compiling arduPiLoRa..."
+		g++ -c arduPiLoRa.cpp \
+			-I"$ARDUPIAPI_DIR" \
+			-I"$ARDUPI_DIR" \
+			-o arduPiLoRa.o
+	fi
+fi
+
+sleep 1
+
+cd "$PROJECT_DIR"
+file="./$1"
+
+if [ "$1" != "-clean" ]; then
+if [ -e $file ]; then
+if [ "$1" != "" ]; then
+echo "Compiling PROJECT..."
+
+g++ -lbluetooth -lrt -lpthread -lstdc++ "$1" \
+				"$LIBRARY_DIR/arduPiLoRa.o" \
+				"$ARDUPIAPI_DIR/arduPiUART.o" \
+				"$ARDUPIAPI_DIR/arduPiUtils.o" \
+				"$ARDUPIAPI_DIR/arduPiMultiprotocol.o" \
+				"$ARDUPI_DIR/arduPi.o" \
+				"$INC_DIR/lora.o"\
+				"$BLE_DIR/ble_receiver.o"\
+				-I"$ARDUPI_DIR"\
+				-I"$ARDUPIAPI_DIR"\
+				-I"$LIBRARY_DIR"\
+				-I"$PROJECT_DIR"\
+				-I"$INC_DIR"\
+				-I"$BLE_DIR"\
+				-o "$1_exe"
+						else
+						echo "---------------HELP------------------"
+						echo "Compiling: ./mak.sh filetocompile.cpp"
+						echo "Cleaning:  ./mak.sh -clean"
+						echo "-------------------------------------"
+						fi
+						else
+						echo "ERROR No such file or directory: $file"
+						fi
+						else
+						echo "¡¡Spotless Kitchen!!"
+						fi
+
+						sleep 1
+
+						exit 0
+

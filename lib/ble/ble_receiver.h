@@ -1,4 +1,7 @@
 #include <unistd.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/time.h>
 
 #include <bluetooth/bluetooth.h>
@@ -35,6 +38,9 @@ int check_hyundai_beacon(ble_struct *val);
 
 void print_vec();
 bool exist_addr(bdaddr_t bdaddr);
-int insert_data(ble_struct *val);
+int insert_csv_data(ble_struct *val);
+int insert_sending_data(ble_struct *val);
+void delete_sending_data();
+void delete_sending_data();
 char* print_time(timeval val);
 void make_csv_files(timeval start, int max_index);
