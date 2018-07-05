@@ -7,5 +7,7 @@
 <code> $ ./cook.sh main.cpp </code>
 
 #### 2. Run
-##### <code>$ ./main.cpp_exe [duration] </code>
+
+<code>$ ./main.cpp_exe [duration] </code>
+
 > $ ./main.cpp_exe 100
