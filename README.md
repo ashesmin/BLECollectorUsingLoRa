@@ -4,17 +4,9 @@ This program consists of two parts : Sender and Receiver.
 
 And The flow is as follows.
 
-First, Sender gathers ble beacon packet.
+First, Sender gathers ble beacon packet. After interval or If the number of scanned beacon is full, sender send ble scanned data to receiver using lora.
 
-After interval or If the number of scanned beacon is full,
-
-sender send ble scanned data to receiver using lora.
-
-Second, receiver receives ble scanned data.
-
-receiver interprets payload and print contents.
-
-and also it can treat other purposes.
+Second, receiver receives ble scanned data. receiver interprets payload and print contents. it also can treat other purposes.
 
 
 
