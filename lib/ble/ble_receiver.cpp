@@ -137,7 +137,7 @@ ble_struct interpret_buf(uint8_t* buf, int size) {
 				gettimeofday(&t, NULL);
 
 				msg.bdaddr = info->bdaddr;
-				msg.rssi = info->data[info->length] - 256;
+				msg.rssi = info->data[info->length] - 128;
 				msg.batt_lv = buf[39];
 				msg.btn = buf[41];
 				msg.time = t;
@@ -165,8 +165,6 @@ void close_ble_scanner(int device, int status) {
 
 	hci_close_dev(device);
 }
-
-
 
 void print_ble_struct(ble_struct msg) {
 	char addr[18];
@@ -209,6 +207,7 @@ vector<ble_struct>::iterator vi;
 vector<vector<ble_struct>>::iterator vvi;
 
 vector<ble_struct> s_v;
+vector<ble_struct>::iterator s_vi;
 
 void print_vec() {
 	for(vvi = v.begin() ; vvi != v.end() ; vvi++ ) {
@@ -226,7 +225,7 @@ void print_vec() {
 		char addr[18];
 		ba2str(&((vvi->begin())->bdaddr), addr);
 
-		printf("ADDR: %s,\tCOUNT: %d,\t(LAST) RSSI: %d,\tINTERVAL: %.4f,\tCUR-LAST: %.4f,\tBATT_LV: %03d,\tBUTTON: %02X\n", addr, vvi->size(), last_vi->rssi-256, diff, diff2, last_vi->batt_lv, last_vi->btn);
+		printf("ADDR: %s,\tCOUNT: %d,\t(LAST) RSSI: %d,\tINTERVAL: %.4f,\tCUR-LAST: %.4f,\tBATT_LV: %03d,\tBUTTON: %02X\n", addr, vvi->size(), last_vi->rssi-128, diff, diff2, last_vi->batt_lv, last_vi->btn);
 	}
 	printf("TOTAL DEVICES : %d\n\n", v.size());
 }
@@ -272,8 +271,16 @@ int insert_sending_data(ble_struct *val) {
 	return 1;
 }
 
-void delete_sending_data() {
-	s_v.clear();
+void delete_sending_data() { s_v.clear(); }
+
+void cal_diff_time(timeval val) {
+	int i = 0;
+	for ( s_vi = s_v.begin() ; s_vi != s_v.end() ; s_vi++ ) {
+		i++; 
+		int mili_sec = (s_vi->time.tv_usec - val.tv_usec)/10000;
+		cout << "index : " << i << "\tdiff_sec : " << s_vi->time.tv_sec - val.tv_sec << "\t\tdiff_mili_sec : " << mili_sec << endl;
+	}
+	cout << endl;
 }
 
 char* print_time(timeval val) {
@@ -332,7 +339,7 @@ void make_csv_files(timeval start, int max_index) {
 				file << addr << ",";
 				file << batt_lv << ",";
 				file << btn << ",";
-				file << (vi->rssi - 256) << endl;
+				file << (vi->rssi - 128) << endl;
 				vi++;				
 			} else {
 				file << endl;
@@ -342,3 +349,163 @@ void make_csv_files(timeval start, int max_index) {
 	}
 }
 
+bool check_time(timeval* prev, timeval* cur, int diff) {
+	if ( (cur->tv_sec - prev->tv_sec) >= diff ) {
+		prev->tv_sec = cur->tv_sec;
+		prev->tv_usec = cur->tv_usec;
+
+		return true;
+	}
+	return false;
+}
+
+bool check_btn_event(ble_struct *val) {
+	if ( val->btn ) {
+		return true;
+	}
+	return false;
+}
+
+void get_bluetooth_mac(uint8_t* mac_address) {
+    struct ifreq ifr;
+    struct ifconf ifc;
+    char buf[1024];
+    int success = 0;
+
+    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+    if (sock == -1) { /* handle error*/ };
+
+    ifc.ifc_len = sizeof(buf);
+    ifc.ifc_buf = buf;
+    if (ioctl(sock, SIOCGIFCONF, &ifc) == -1) { /* handle error */ }
+
+    struct ifreq* it = ifc.ifc_req;
+    const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
+
+    for (; it != end; ++it) {
+        strcpy(ifr.ifr_name, it->ifr_name);
+        if (ioctl(sock, SIOCGIFFLAGS, &ifr) == 0) {
+            if (! (ifr.ifr_flags & IFF_LOOPBACK)) { // don't count loopback
+                if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
+                    success = 1;
+                    break;
+                }
+            }
+        }
+        else { /* handle error */ }
+    }
+
+    if (success) memcpy(mac_address, ifr.ifr_hwaddr.sa_data, 6);
+}
+
+uint8_t make_heartbeat(uint8_t* buf) {
+	uint8_t reader_mac[6];
+
+	memset(buf, 0, 255);
+	buf[0] = 0x00;
+
+	get_bluetooth_mac(reader_mac);
+	memcpy( &(buf[2]), &reader_mac, sizeof(reader_mac) );
+
+	buf[1] = 8;
+
+	return 8;
+}
+
+void convert_struct_to_barray(ble_struct* msg, uint8_t* barray) {
+	memcpy( barray, &(msg->bdaddr.b[0]), 3);
+
+	short tmp = 0;
+
+	tmp = msg->batt_lv;
+	tmp = tmp << 7;
+	tmp |= msg->rssi;
+	tmp = tmp << 2;
+	tmp |= msg->btn;
+
+	memcpy( barray + 3, &tmp, 2 );
+}
+
+void convert_barray_to_struct(ble_struct* msg, uint8_t* barray) {
+	msg->bdaddr.b[5] = 0x50;
+	msg->bdaddr.b[4] = 0x8D;
+	msg->bdaddr.b[3] = 0x6F;
+	msg->bdaddr.b[2] = barray[2];
+	msg->bdaddr.b[1] = barray[1];
+	msg->bdaddr.b[0] = barray[0];
+
+	short tmp;
+	memcpy( &tmp, barray + 3 , 2 );
+
+	msg->btn = tmp & 0x03;
+	tmp = tmp >> 2;
+	msg->rssi = tmp & 0x7F;
+	tmp = tmp >> 7;
+	msg->batt_lv = tmp & 0x7F;
+}
+
+uint8_t make_data_pkt(uint8_t* buf) {
+	uint8_t reader_mac[6];
+	uint8_t length = 8;
+
+	memset(buf, 0, 255);
+	buf[0] = 0x01;
+
+	get_bluetooth_mac(reader_mac);
+	memcpy( &(buf[2]), &reader_mac, sizeof(reader_mac) );
+
+	for ( s_vi = s_v.begin() ; s_vi != s_v.end() ; s_vi++ ) {
+		convert_struct_to_barray( &(*s_vi), buf + length );
+		length += 5;
+	}
+	delete_sending_data();
+	buf[1] = length;
+
+	return length;	
+}
+
+uint8_t make_btn_event_pkt(ble_struct* msg, uint8_t* buf) {
+	uint8_t reader_mac[6];
+
+	memset(buf, 0, 255);
+	buf[0] = 0x01;
+
+	get_bluetooth_mac(reader_mac);
+	memcpy( &(buf[2]), &reader_mac, sizeof(reader_mac) );
+
+	convert_struct_to_barray( msg, buf+8 );
+
+	buf[1] = 13 /*length*/;	
+	return 13;
+}
+
+uint8_t get_pkt_flag(uint8_t* buf) {
+	return buf[0];
+}
+uint8_t get_length(uint8_t* buf) {
+	return buf[1];
+}
+void get_reader_mac(uint8_t* buf, uint8_t* addr) {
+	memcpy( addr, &(buf[2]), 6 );
+}
+
+void print_pkt(uint8_t* buf) {
+	ble_struct msg;
+	uint8_t flag = get_pkt_flag(buf);
+	uint8_t length = get_length(buf);
+	uint8_t reader_mac[6];
+
+	get_reader_mac(buf, reader_mac);
+	printf("%d, %d, %02X:%02X:%02X:%02X:%02X:%02X \n", flag, length, reader_mac[0], reader_mac[1], reader_mac[2], reader_mac[3], reader_mac[4], reader_mac[5]);
+	int max_index = (length-8)/5;
+	if ( max_index > 0) {
+		char addr[18];
+		for ( int i = 0 ; i < max_index ; i++ ) {
+			convert_barray_to_struct(&msg, buf+8+i*5);
+			ba2str(&(msg.bdaddr), addr);
+			printf("\tBeacon %d - addr : %s, batt_lv : %d, rssi : %d, btn : %d\n", i, addr, msg.batt_lv, msg.rssi-128, msg.btn);
+		}
+	} else {
+		printf("\tHeart Beat Received!");
+	}		
+}

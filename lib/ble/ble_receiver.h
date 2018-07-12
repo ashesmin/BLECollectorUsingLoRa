@@ -3,6 +3,11 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/ioctl.h>
+#include <net/if.h> 
+#include <unistd.h>
+#include <netinet/in.h>
+#include <string.h>
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
@@ -42,5 +47,23 @@ int insert_csv_data(ble_struct *val);
 int insert_sending_data(ble_struct *val);
 void delete_sending_data();
 void delete_sending_data();
+void cal_diff_time(timeval val);
 char* print_time(timeval val);
 void make_csv_files(timeval start, int max_index);
+
+void get_bluetooth_mac(uint8_t* mac_address);
+
+bool check_time(timeval* prev, timeval* cur, int diff);
+bool check_btn_event(ble_struct *val);
+
+void convert_struct_to_barray(ble_struct* msg, uint8_t* barray);
+void convert_barray_to_struct(ble_struct* msg, uint8_t* barray);
+uint8_t make_heartbeat(uint8_t* buf);
+uint8_t make_data_pkt(uint8_t* buf);
+uint8_t make_btn_event_pkt(ble_struct* msg, uint8_t* buf);
+
+uint8_t get_pkt_flag(uint8_t* buf);
+uint8_t get_length(uint8_t* buf);
+void get_reader_mac(uint8_t* buf, uint8_t* addr);
+
+void print_pkt(uint8_t* buf);
