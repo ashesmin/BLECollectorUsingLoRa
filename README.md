@@ -2,6 +2,8 @@
 
 #### 1. Compile
 
+<code> $ chmod 755 ./cook.sh</code>
+
 <code> $ ./cook.sh -clean </code>
 
 1) Sender
