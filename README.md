@@ -1,12 +1,34 @@
 # BLECollectorUsingLoRa
 
+This program consists of two parts : Sender and Receiver.
+
+And The flow is as follows.
+
+First, Sender gathers ble beacon packet.
+
+After interval or If the number of scanned beacon is full,
+
+sender send ble scanned data to receiver using lora.
+
+Second, receiver receives ble scanned data.
+
+receiver interprets payload and print contents.
+
+and also it can treat other purposes.
+
+
+
 #### 0. Prerequisite
 
 1) Hardware
 - Two raspberry pi 3 model B : One is sender, another is receiver. 
 
     Link : https://www.raspberrypi.org/products/raspberry-pi-3-model-b-plus/
-- Two 
+    
+- Two sx1272 lora shield
+
+    Link : https://www.cooking-hacks.com/sx1272-lora-shield-for-raspberry-pi-868-mhz
+
 
 #### 1. Compile
 
