@@ -4,6 +4,7 @@
 
 1) Hardware
 - Two raspberry pi 3 model B : One is sender, another is receiver. 
+
     Link : https://www.raspberrypi.org/products/raspberry-pi-3-model-b-plus/
 - Two 
 
