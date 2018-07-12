@@ -1,5 +1,12 @@
 # BLECollectorUsingLoRa
 
+#### 0. Prerequisite
+
+1) Hardware
+- Two raspberry pi 3 model B : One is sender, another is receiver. 
+    Link : https://www.raspberrypi.org/products/raspberry-pi-3-model-b-plus/
+- Two 
+
 #### 1. Compile
 
 <code> $ chmod 755 ./cook.sh</code>
