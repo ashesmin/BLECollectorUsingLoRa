@@ -1,10 +1,10 @@
+#include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
-#include <net/if.h> 
 #include <unistd.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -13,57 +13,58 @@
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 
-#include <string>
-#include <vector>
-#include <fstream>
+#include "util.h"
+
 #include <iostream>
+#include <vector>
 using namespace std;
 
-typedef struct{ 
-	struct timeval time;
-	bdaddr_t bdaddr;
-	uint8_t batt_lv;
-	uint8_t btn;
-	uint8_t rssi;
-} ble_struct;
-/* sizeof(my_msg) = 20 */
+struct T {
+	uint8_t t[8];
+};
 
-// HCI_MAX_EVENT_SIZE 260
-// HCI_EVENT_HDR_SIZE   2
+class ble_receiver {
+private:
+	int status;
+	int device;
+	//
+	// typedef struct {
+	// 		uint8_t type;
+	// 		uint16_t interval;
+	//		uint16_t window;
+	//		uint8_t own_bdaddr_type;
+	//		uint8_t filter;
+	//	} __attribute__ ((packed)) le_set_scan_parameters_cp;
+	le_set_scan_parameters_cp scan_params_cp;
+	le_set_scan_enable_cp scan_cp;
+	le_set_event_mask_cp event_mask_cp;
 
-int open_hci_dev();
-void init_ble_scanner(int device, int status);
-void close_ble_scanner(int device, int status);
+	uint8_t tag[8], buf[HCI_MAX_EVENT_SIZE], g_buf[255], s_buf[255];
+	uint8_t g_buf_size, s_buf_size;
+	int tag_flag;
 
-ble_struct interpret_buf(uint8_t* buf, int size);
+	vector<T> v;
+	vector<T>::iterator vi;
 
-void print_ble_struct(ble_struct msg);
+	timeval prev_heartbeat, prev_general_interval, prev_special_interval;
 
-int check_hyundai_beacon(ble_struct *val);
+public:
+	ble_receiver();
+	~ble_receiver();
 
-void print_vec();
-bool exist_addr(bdaddr_t bdaddr);
-int insert_csv_data(ble_struct *val);
-int insert_sending_data(ble_struct *val);
-void delete_sending_data();
-void delete_sending_data();
-void cal_diff_time(timeval val);
-char* print_time(timeval val);
-void make_csv_files(timeval start, int max_index);
+	void read_tag();
+	void print_tag();
 
-void get_bluetooth_mac(uint8_t* mac_address);
+	bool exist_addr();
 
-bool check_time(timeval* prev, timeval* cur, int diff);
-bool check_btn_event(ble_struct *val);
+	int get_general_buf(uint8_t* buf, timeval* time);
+	int get_special_buf(uint8_t* buf, timeval* time);
+	void get_heartbeat_time(timeval* time);
 
-void convert_struct_to_barray(ble_struct* msg, uint8_t* barray);
-void convert_barray_to_struct(ble_struct* msg, uint8_t* barray);
-uint8_t make_heartbeat(uint8_t* buf);
-uint8_t make_data_pkt(uint8_t* buf);
-uint8_t make_btn_event_pkt(ble_struct* msg, uint8_t* buf);
+	bool check_general_interval(timeval* cur, int interval);
+	bool check_special_interval(timeval* cur, int interval);
+	bool check_heartbeat(timeval* cur, int interval);
 
-uint8_t get_pkt_flag(uint8_t* buf);
-uint8_t get_length(uint8_t* buf);
-void get_reader_mac(uint8_t* buf, uint8_t* addr);
-
-void print_pkt(uint8_t* buf);
+	void clean_g_buf();
+	void clean_s_buf();
+};

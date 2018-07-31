@@ -3,7 +3,6 @@
 PWD="$(pwd)"
 cd lib/
 BASE_DIR="$(pwd)"
-INC_DIR="$BASE_DIR/inc"
 BLE_DIR="$BASE_DIR/ble"
 ARDUPI_DIR="$BASE_DIR/arduPi"
 ARDUPIAPI_DIR="$BASE_DIR/arduPi-api"
@@ -27,22 +26,37 @@ else
 	fi
 fi
 
-cd "$INC_DIR"
-file="./lora.o"
+cd "$BLE_DIR"
+file="./ble_to_lora.o"
 if [ -e $file ]; then
 	if [ "$1" == "-clean" ]; then
-		echo "lora.o -> purged"
-		rm ./lora.o
+		echo "ble_to_lora.o -> purged"
+		rm ./ble_to_lora.o
 	else
-		echo "lora already compiled"
+		echo "ble to lora already compiled"
 	fi
 else
 	if [ "$1" != "-clean" ]; then
-		echo "Compiling lora... "
-		g++ -c lora.cpp -o lora.o -I  "$LIBRARY_DIR" -I "$ARDUPI_DIR" -I .
+		echo "Compiling ble to lora... "
+		g++ -c ble_to_lora.cpp -o ble_to_lora.o -I  "$LIBRARY_DIR" -I "$ARDUPI_DIR" -I .
 	fi
 fi
 
+cd "$BLE_DIR"
+file="./util.o"
+if [ -e $file ]; then
+	if [ "$1" == "-clean" ]; then
+		echo "util.o -> purged"
+		rm ./util.o
+	else
+		echo "Utility already compiled"
+	fi
+else
+	if [ "$1" != "-clean" ]; then
+		echo "Compiling utility... "
+		g++ -c util.cpp -o util.o -lbluetooth
+	fi
+fi
 
 #compile arduPi
 cd "$ARDUPI_DIR"
@@ -147,13 +161,13 @@ g++ -lbluetooth -lrt -lpthread -lstdc++ "$1" \
 				"$ARDUPIAPI_DIR/arduPiUtils.o" \
 				"$ARDUPIAPI_DIR/arduPiMultiprotocol.o" \
 				"$ARDUPI_DIR/arduPi.o" \
-				"$INC_DIR/lora.o"\
+				"$BLE_DIR/ble_to_lora.o"\
 				"$BLE_DIR/ble_receiver.o"\
+				"$BLE_DIR/util.o"\
 				-I"$ARDUPI_DIR"\
 				-I"$ARDUPIAPI_DIR"\
 				-I"$LIBRARY_DIR"\
 				-I"$PROJECT_DIR"\
-				-I"$INC_DIR"\
 				-I"$BLE_DIR"\
 				-o "$1_exe"
 						else
