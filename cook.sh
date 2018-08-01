@@ -43,6 +43,22 @@ else
 fi
 
 cd "$BLE_DIR"
+file="./lora_to_eth.o"
+if [ -e $file ]; then
+	if [ "$1" == "-clean" ]; then
+		echo "lora_to_eth.o -> purged"
+		rm ./lora_to_eth.o
+	else
+		echo "lora to ethernet already compiled"
+	fi
+else
+	if [ "$1" != "-clean" ]; then
+		echo "Compiling lora to ethernet... "
+		g++ -c lora_to_eth.cpp -o lora_to_eth.o
+	fi
+fi
+
+cd "$BLE_DIR"
 file="./util.o"
 if [ -e $file ]; then
 	if [ "$1" == "-clean" ]; then
@@ -161,8 +177,9 @@ g++ -lbluetooth -lrt -lpthread -lstdc++ "$1" \
 				"$ARDUPIAPI_DIR/arduPiUtils.o" \
 				"$ARDUPIAPI_DIR/arduPiMultiprotocol.o" \
 				"$ARDUPI_DIR/arduPi.o" \
-				"$BLE_DIR/ble_to_lora.o"\
 				"$BLE_DIR/ble_receiver.o"\
+				"$BLE_DIR/ble_to_lora.o"\
+				"$BLE_DIR/lora_to_eth.o"\
 				"$BLE_DIR/util.o"\
 				-I"$ARDUPI_DIR"\
 				-I"$ARDUPIAPI_DIR"\

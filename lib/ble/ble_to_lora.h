@@ -20,4 +20,7 @@ public:
 	int get_send_buf(uint8_t* buf);
 
 	void clean_buf();
+
+	void print_reader_tag(uint8_t* buf);
+	void interpret(uint8_t* buf);
 };

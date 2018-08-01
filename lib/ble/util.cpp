@@ -6,9 +6,10 @@ char* print_time(timeval val) {
      
     today = localtime(&val.tv_sec);
 
-    sprintf(now, "%02d:%02d:%02d", today->tm_hour,
+    sprintf(now, "%02d:%02d:%02d.%06d", today->tm_hour,
 										today->tm_min,
-										today->tm_sec);
+										today->tm_sec,
+										val.tv_usec);
 
     return now;
 }
