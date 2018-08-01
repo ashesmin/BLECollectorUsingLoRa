@@ -31,11 +31,13 @@ int main(int argc, char* argv[]) {
 
 			btol.write(R_HEARTBEAT, 13);
 			btol.make_values(reader_mac, time);
+			buf_len = btol.get_send_buf(buf);
+			send_state = sx1272.sendPacketTimeout((uint8_t)10, buf, buf_len);
 
 			printf("%s \t/ ", print_time(time));
 			printf("Send Heartbeat\t / send_state = %d \t / buf_len = %d \n", send_state, 15);
 		}
-		if ( ble.check_general_interval(&cur, time_interval) ) {
+		if ( ble.check_general_interval(&cur, time_interval) || ble.check_general_count(max_count) ) {
 			buf_len = ble.get_general_buf(buf, &time);
 
 			btol.write(R_DATA_FRAME, 13);
@@ -50,7 +52,7 @@ int main(int argc, char* argv[]) {
 			btol.clean_buf();
 			ble.clean_g_buf();
 		}
-		if ( ble.check_special_interval(&cur, time_interval) ) {
+		if ( ble.check_special_interval(&cur, time_interval) || ble.check_special_count(max_count) ) {
 			buf_len = ble.get_special_buf(buf, &time);
 
 			btol.write(R_DATA_FRAME, 13);

@@ -248,6 +248,7 @@ void ble_receiver::print_tag() {
 int ble_receiver::get_general_buf(uint8_t* buf, timeval* time) {
 	time->tv_sec = prev_general_interval.tv_sec;
 	time->tv_usec = prev_general_interval.tv_usec;
+	g_buf_size +=2;
 	memcpy(buf, g_buf, g_buf_size);
 	return g_buf_size;
 }
@@ -255,6 +256,7 @@ int ble_receiver::get_general_buf(uint8_t* buf, timeval* time) {
 int ble_receiver::get_special_buf(uint8_t* buf, timeval* time) {
 	time->tv_sec = prev_special_interval.tv_sec;
 	time->tv_usec = prev_special_interval.tv_usec;
+	s_buf_size +=2;
 	memcpy(buf, s_buf, s_buf_size);
 	return s_buf_size;
 }
@@ -273,6 +275,14 @@ bool ble_receiver::check_general_interval(timeval* cur, int interval) {
 	}
 	return false;	
 }
+
+bool ble_receiver::check_general_count(int count) {
+	if ( g_buf_size >= count * 7 ) {
+		return true;
+	}
+	return false;
+}
+
 bool ble_receiver::check_special_interval(timeval* cur, int interval) {
 	if ( (cur->tv_sec - prev_special_interval.tv_sec) >= interval && s_buf_size > 0 ) {
 		prev_special_interval.tv_sec = cur->tv_sec;
@@ -282,6 +292,14 @@ bool ble_receiver::check_special_interval(timeval* cur, int interval) {
 	}
 	return false;	
 }
+
+bool ble_receiver::check_special_count(int count) {
+	if ( s_buf_size >= count * 8 ) {
+		return true;
+	}
+	return false;
+}
+
 bool ble_receiver::check_heartbeat(timeval* cur, int interval) {
 	if ( (cur->tv_sec - prev_heartbeat.tv_sec) >= interval ) {
 		prev_heartbeat.tv_sec = cur->tv_sec;

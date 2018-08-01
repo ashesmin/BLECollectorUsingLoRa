@@ -62,7 +62,9 @@ public:
 	void get_heartbeat_time(timeval* time);
 
 	bool check_general_interval(timeval* cur, int interval);
+	bool check_general_count(int count);
 	bool check_special_interval(timeval* cur, int interval);
+	bool check_special_count(int count);
 	bool check_heartbeat(timeval* cur, int interval);
 
 	void clean_g_buf();
